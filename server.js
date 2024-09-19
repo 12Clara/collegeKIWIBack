@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const fs = require('fs'); // Required to interact with the file system
 const bodyParser = require('body-parser');
 const app = express();
 const port = 3000;
@@ -16,10 +17,10 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({ extended: false }));
 
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'main', 'index.html'));
 });
 app.get('/contact', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'copy.html'));
+    res.sendFile(path.join(__dirname, 'public', 'main', 'copy.html'));
 });
 app.post('/contact', (req, res) => {
     const { name, email, message } = req.body;
@@ -32,7 +33,18 @@ app.post('/contact', (req, res) => {
         }
     });
 });
-
+app.get('/api/json-files', (req, res) => {
+    const jsonFolderPath = path.join(__dirname, 'public', 'extracurriculars', 'json'); // Adjust path if necessary
+    fs.readdir(jsonFolderPath, (err, files) => {
+        if (err) {
+            console.error('Error reading directory:', err); // Log the error
+            return res.status(500).send('Error reading directory');
+        }
+        // Filter JSON files and send them as JSON response
+        const jsonFiles = files.filter(file => file.endsWith('.json'));
+        res.json(jsonFiles.map(file => `json/${file}`));
+    });
+});
 app.listen(port, () => {
     console.log(`Server is running at http://localhost:${port}`);
 });
